@@ -8,31 +8,85 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const Time = IDL.Int;
+export const Address = IDL.Record({
+  'street' : IDL.Text,
+  'city' : IDL.Text,
+  'state' : IDL.Text,
+  'pincode' : IDL.Text,
+});
 export const Preorder = IDL.Record({
+  'id' : IDL.Principal,
+  'status' : IDL.Text,
+  'paymentMethod' : IDL.Text,
   'name' : IDL.Text,
+  'createdAt' : Time,
   'email' : IDL.Text,
+  'address' : Address,
   'quantity' : IDL.Nat,
+  'phone' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
   'getAllPreorders' : IDL.Func([], [IDL.Vec(Preorder)], ['query']),
   'getTotalPreorders' : IDL.Func([], [IDL.Nat], ['query']),
-  'submitPreorder' : IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [], []),
+  'submitPreorder' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+      ],
+      [],
+      [],
+    ),
+  'updateOrderStatus' : IDL.Func([IDL.Principal, IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Time = IDL.Int;
+  const Address = IDL.Record({
+    'street' : IDL.Text,
+    'city' : IDL.Text,
+    'state' : IDL.Text,
+    'pincode' : IDL.Text,
+  });
   const Preorder = IDL.Record({
+    'id' : IDL.Principal,
+    'status' : IDL.Text,
+    'paymentMethod' : IDL.Text,
     'name' : IDL.Text,
+    'createdAt' : Time,
     'email' : IDL.Text,
+    'address' : Address,
     'quantity' : IDL.Nat,
+    'phone' : IDL.Text,
   });
   
   return IDL.Service({
     'getAllPreorders' : IDL.Func([], [IDL.Vec(Preorder)], ['query']),
     'getTotalPreorders' : IDL.Func([], [IDL.Nat], ['query']),
-    'submitPreorder' : IDL.Func([IDL.Text, IDL.Text, IDL.Nat], [], []),
+    'submitPreorder' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+        ],
+        [],
+        [],
+      ),
+    'updateOrderStatus' : IDL.Func([IDL.Principal, IDL.Text], [], []),
   });
 };
 

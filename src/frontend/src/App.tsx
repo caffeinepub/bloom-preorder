@@ -1,10 +1,13 @@
+import type { Preorder } from "@/backend.d";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,7 +18,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Toaster } from "@/components/ui/sonner";
-import { useGetTotalPreorders, useSubmitPreorder } from "@/hooks/useQueries";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  useGetAllPreorders,
+  useGetTotalPreorders,
+  useSubmitPreorder,
+  useUpdateOrderStatus,
+} from "@/hooks/useQueries";
+import type { Principal } from "@icp-sdk/core/principal";
 import {
   AlertCircle,
   CheckCircle,
@@ -24,9 +41,14 @@ import {
   Heart,
   Leaf,
   Loader2,
+  LogOut,
   Menu,
+  Package,
+  ShieldCheck,
   Sparkles,
   Star,
+  Truck,
+  Users,
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -49,7 +71,6 @@ function useAnimatedCounter(target: number, duration = 1800) {
       if (!startRef.current) startRef.current = timestamp;
       const elapsed = timestamp - startRef.current;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease out cubic
       const eased = 1 - (1 - progress) ** 3;
       setCount(Math.floor(eased * target));
       if (progress < 1) {
@@ -69,7 +90,7 @@ function useAnimatedCounter(target: number, duration = 1800) {
 /* ─────────────────────────────────────────────────────────────────────────
    Navbar
 ───────────────────────────────────────────────────────────────────────── */
-function Navbar() {
+function Navbar({ onAdminClick }: { onAdminClick?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -175,6 +196,18 @@ function Navbar() {
               >
                 Preorder Now
               </Button>
+              {onAdminClick && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onAdminClick();
+                    setMenuOpen(false);
+                  }}
+                  className="text-left text-xs text-bloom-gray hover:text-bloom-hot-pink transition-colors"
+                >
+                  Admin Login
+                </button>
+              )}
             </div>
           </motion.div>
         )}
@@ -276,8 +309,9 @@ function HeroSection() {
                 <Heart className="w-4 h-4 mr-2" />
                 Preorder Now
               </Button>
-              <span className="text-sm text-bloom-gray">
-                ✨ Only pay when it ships
+              <span className="text-sm text-bloom-gray flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-green-500" />
+                Cash on Delivery available
               </span>
             </motion.div>
 
@@ -642,13 +676,26 @@ function SocialProofSection() {
 function PreorderSection() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
   const [quantity, setQuantity] = useState<string>("1");
 
   const mutation = useSubmitPreorder();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) {
+    if (
+      !name.trim() ||
+      !email.trim() ||
+      !phone.trim() ||
+      !street.trim() ||
+      !city.trim() ||
+      !state.trim() ||
+      !pincode.trim()
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -656,16 +703,34 @@ function PreorderSection() {
       toast.error("Please enter a valid email address");
       return;
     }
+    if (!/^[6-9]\d{9}$/.test(phone.replace(/\s/g, ""))) {
+      toast.error("Please enter a valid 10-digit Indian mobile number");
+      return;
+    }
+    if (!/^\d{6}$/.test(pincode.trim())) {
+      toast.error("Please enter a valid 6-digit pincode");
+      return;
+    }
     mutation.mutate(
       {
         name: name.trim(),
         email: email.trim(),
+        phone: phone.trim(),
+        street: street.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        pincode: pincode.trim(),
         quantity: Number.parseInt(quantity),
       },
       {
         onSuccess: () => {
           setName("");
           setEmail("");
+          setPhone("");
+          setStreet("");
+          setCity("");
+          setState("");
+          setPincode("");
           setQuantity("1");
         },
         onError: () => {
@@ -674,6 +739,8 @@ function PreorderSection() {
       },
     );
   };
+
+  const isDisabled = mutation.isPending;
 
   return (
     <section
@@ -705,19 +772,41 @@ function PreorderSection() {
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
+          {/* COD Banner */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+              <Truck className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-green-800">
+                Cash on Delivery
+              </p>
+              <p className="text-xs text-green-700">
+                Pay when your order arrives at your door — no payment needed
+                now!
+              </p>
+            </div>
+            <div className="ml-auto">
+              <span className="bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                COD
+              </span>
+            </div>
+          </div>
+
           <div className="bg-white rounded-3xl shadow-bloom-lg p-8 sm:p-10">
             {/* Price callout */}
             <div className="bg-bloom-pale rounded-2xl p-4 mb-8 flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-bloom-hot-pink">
-                  $19.99 USD
+                  ₹400.00
                 </p>
+                <p className="text-xs text-bloom-gray">per bottle</p>
               </div>
               <div className="text-right">
                 <span className="bg-bloom-hot-pink text-white text-xs font-bold px-3 py-1 rounded-full">
                   Best Value
                 </span>
-                <p className="text-xs text-bloom-gray mt-1">Pay at shipping</p>
+                <p className="text-xs text-bloom-gray mt-1">Pay on delivery</p>
               </div>
             </div>
 
@@ -736,19 +825,28 @@ function PreorderSection() {
                     <CheckCircle className="w-8 h-8 text-bloom-hot-pink" />
                   </div>
                   <h3 className="text-xl font-bold text-bloom-dark mb-2">
-                    You're on the list! 🌸
+                    Order Placed! 🌸
                   </h3>
                   <p className="text-bloom-gray text-sm max-w-xs mx-auto">
-                    We'll email you when your Bloom Styling Glue™ is ready to
-                    ship. Get ready to wear your favorite dress with confidence.
+                    Your preorder is confirmed. We'll be in touch when your
+                    Bloom Styling Glue™ is ready to ship — and you pay only when
+                    it arrives!
                   </p>
-                  <Button
-                    onClick={() => mutation.reset()}
-                    variant="outline"
-                    className="mt-6 border-bloom-pink text-bloom-hot-pink hover:bg-bloom-pale rounded-full"
-                  >
-                    Reserve Another
-                  </Button>
+                  <div className="mt-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 inline-flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-green-600" />
+                    <span className="text-xs font-semibold text-green-700">
+                      Cash on Delivery confirmed
+                    </span>
+                  </div>
+                  <div className="mt-6">
+                    <Button
+                      onClick={() => mutation.reset()}
+                      variant="outline"
+                      className="border-bloom-pink text-bloom-hot-pink hover:bg-bloom-pale rounded-full"
+                    >
+                      Reserve Another
+                    </Button>
+                  </div>
                 </motion.div>
               ) : mutation.isError ? (
                 <motion.div
@@ -770,12 +868,13 @@ function PreorderSection() {
 
             {!mutation.isSuccess && (
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Full Name */}
                 <div>
                   <Label
                     htmlFor="preorder-name"
                     className="text-sm font-medium text-bloom-dark mb-1.5 block"
                   >
-                    Full Name
+                    Full Name <span className="text-bloom-hot-pink">*</span>
                   </Label>
                   <Input
                     id="preorder-name"
@@ -785,17 +884,18 @@ function PreorderSection() {
                     placeholder="Your full name"
                     className="rounded-xl border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink h-11"
                     required
-                    disabled={mutation.isPending}
+                    disabled={isDisabled}
                     autoComplete="name"
                   />
                 </div>
 
+                {/* Email */}
                 <div>
                   <Label
                     htmlFor="preorder-email"
                     className="text-sm font-medium text-bloom-dark mb-1.5 block"
                   >
-                    Email Address
+                    Email Address <span className="text-bloom-hot-pink">*</span>
                   </Label>
                   <Input
                     id="preorder-email"
@@ -806,36 +906,146 @@ function PreorderSection() {
                     placeholder="you@email.com"
                     className="rounded-xl border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink h-11"
                     required
-                    disabled={mutation.isPending}
+                    disabled={isDisabled}
                     autoComplete="email"
                   />
                 </div>
 
+                {/* Phone */}
                 <div>
                   <Label
-                    htmlFor="preorder-qty"
+                    htmlFor="preorder-phone"
                     className="text-sm font-medium text-bloom-dark mb-1.5 block"
                   >
-                    Quantity
+                    Phone Number <span className="text-bloom-hot-pink">*</span>
                   </Label>
-                  <Select
-                    value={quantity}
-                    onValueChange={setQuantity}
-                    disabled={mutation.isPending}
+                  <Input
+                    id="preorder-phone"
+                    data-ocid="preorder.phone.input"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="10-digit mobile number"
+                    className="rounded-xl border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink h-11"
+                    required
+                    disabled={isDisabled}
+                    autoComplete="tel"
+                    maxLength={10}
+                  />
+                </div>
+
+                {/* Street Address */}
+                <div>
+                  <Label
+                    htmlFor="preorder-street"
+                    className="text-sm font-medium text-bloom-dark mb-1.5 block"
                   >
-                    <SelectTrigger
-                      id="preorder-qty"
-                      data-ocid="preorder.quantity.select"
-                      className="rounded-xl border-bloom-pink/40 h-11 focus:ring-bloom-hot-pink"
+                    Street Address{" "}
+                    <span className="text-bloom-hot-pink">*</span>
+                  </Label>
+                  <Input
+                    id="preorder-street"
+                    data-ocid="preorder.street.input"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    placeholder="House no., Street, Area"
+                    className="rounded-xl border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink h-11"
+                    required
+                    disabled={isDisabled}
+                    autoComplete="street-address"
+                  />
+                </div>
+
+                {/* City + State */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label
+                      htmlFor="preorder-city"
+                      className="text-sm font-medium text-bloom-dark mb-1.5 block"
                     >
-                      <SelectValue placeholder="Select quantity" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="1">1 bottle — $19.99</SelectItem>
-                      <SelectItem value="2">2 bottles — $39.98</SelectItem>
-                      <SelectItem value="3">3+ bottles — Best deal</SelectItem>
-                    </SelectContent>
-                  </Select>
+                      City <span className="text-bloom-hot-pink">*</span>
+                    </Label>
+                    <Input
+                      id="preorder-city"
+                      data-ocid="preorder.city.input"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="City"
+                      className="rounded-xl border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink h-11"
+                      required
+                      disabled={isDisabled}
+                      autoComplete="address-level2"
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="preorder-state"
+                      className="text-sm font-medium text-bloom-dark mb-1.5 block"
+                    >
+                      State <span className="text-bloom-hot-pink">*</span>
+                    </Label>
+                    <Input
+                      id="preorder-state"
+                      data-ocid="preorder.state.input"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="State"
+                      className="rounded-xl border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink h-11"
+                      required
+                      disabled={isDisabled}
+                      autoComplete="address-level1"
+                    />
+                  </div>
+                </div>
+
+                {/* Pincode + Quantity */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label
+                      htmlFor="preorder-pincode"
+                      className="text-sm font-medium text-bloom-dark mb-1.5 block"
+                    >
+                      Pincode <span className="text-bloom-hot-pink">*</span>
+                    </Label>
+                    <Input
+                      id="preorder-pincode"
+                      data-ocid="preorder.pincode.input"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value)}
+                      placeholder="6-digit pincode"
+                      className="rounded-xl border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink h-11"
+                      required
+                      disabled={isDisabled}
+                      autoComplete="postal-code"
+                      maxLength={6}
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="preorder-qty"
+                      className="text-sm font-medium text-bloom-dark mb-1.5 block"
+                    >
+                      Quantity <span className="text-bloom-hot-pink">*</span>
+                    </Label>
+                    <Select
+                      value={quantity}
+                      onValueChange={setQuantity}
+                      disabled={isDisabled}
+                    >
+                      <SelectTrigger
+                        id="preorder-qty"
+                        data-ocid="preorder.quantity.select"
+                        className="rounded-xl border-bloom-pink/40 h-11 focus:ring-bloom-hot-pink"
+                      >
+                        <SelectValue placeholder="Qty" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="1">1 — ₹400</SelectItem>
+                        <SelectItem value="2">2 — ₹800</SelectItem>
+                        <SelectItem value="3">3+ — Best deal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {mutation.isPending && (
@@ -851,25 +1061,25 @@ function PreorderSection() {
                 <Button
                   data-ocid="preorder.submit_button"
                   type="submit"
-                  disabled={mutation.isPending}
+                  disabled={isDisabled}
                   size="lg"
                   className="w-full bg-bloom-hot-pink hover:bg-bloom-pink text-white font-semibold rounded-xl h-12 shadow-bloom transition-all hover:shadow-bloom-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
                 >
                   {mutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-                      Reserving…
+                      Placing Order…
                     </>
                   ) : (
                     <>
-                      <Heart className="mr-2 w-4 h-4" />
-                      Reserve My Spot
+                      <Truck className="mr-2 w-4 h-4" />
+                      Place COD Order
                     </>
                   )}
                 </Button>
 
                 <p className="text-xs text-center text-bloom-gray">
-                  🔒 Secure. No payment until shipping. Cancel anytime.
+                  🔒 Secure. Pay only when your package arrives. Cancel anytime.
                 </p>
               </form>
             )}
@@ -903,6 +1113,10 @@ const faqs = [
   {
     q: "How long does it last?",
     a: "One application lasts all day — through dancing, sweating, and everything in between. Simply remove with warm water and mild soap.",
+  },
+  {
+    q: "Do I pay now or on delivery?",
+    a: "You pay on delivery — Cash on Delivery (COD) only. No online payment is required at any point. Our delivery partner will collect the payment when they arrive at your door.",
   },
 ];
 
@@ -957,7 +1171,7 @@ function FAQSection() {
 /* ─────────────────────────────────────────────────────────────────────────
    Footer
 ───────────────────────────────────────────────────────────────────────── */
-function Footer() {
+function Footer({ onAdminClick }: { onAdminClick: () => void }) {
   const year = new Date().getFullYear();
   const hostname = encodeURIComponent(window.location.hostname);
   const caffeineUrl = `https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${hostname}`;
@@ -992,6 +1206,7 @@ function Footer() {
                 <li key={link}>
                   <button
                     type="button"
+                    data-ocid="nav.link"
                     onClick={() =>
                       document
                         .getElementById(link.toLowerCase())
@@ -1031,14 +1246,24 @@ function Footer() {
           <p className="text-xs text-white/40">
             © {year} Bloom. All rights reserved.
           </p>
-          <a
-            href={caffeineUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-white/40 hover:text-white/60 transition-colors"
-          >
-            Built with ❤️ using caffeine.ai
-          </a>
+          <div className="flex items-center gap-6">
+            <a
+              href={caffeineUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-white/40 hover:text-white/60 transition-colors"
+            >
+              Built with ❤️ using caffeine.ai
+            </a>
+            <button
+              type="button"
+              data-ocid="admin.link"
+              onClick={onAdminClick}
+              className="text-xs text-white/20 hover:text-white/40 transition-colors"
+            >
+              Admin Login
+            </button>
+          </div>
         </div>
       </div>
     </footer>
@@ -1046,21 +1271,477 @@ function Footer() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   Admin Dashboard — Status Badge
+───────────────────────────────────────────────────────────────────────── */
+function StatusBadge({ status }: { status: string }) {
+  const configs: Record<string, { label: string; className: string }> = {
+    pending: {
+      label: "Pending",
+      className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    },
+    confirmed: {
+      label: "Confirmed",
+      className: "bg-blue-100 text-blue-800 border-blue-200",
+    },
+    shipped: {
+      label: "Shipped",
+      className: "bg-purple-100 text-purple-800 border-purple-200",
+    },
+    delivered: {
+      label: "Delivered",
+      className: "bg-green-100 text-green-800 border-green-200",
+    },
+    cancelled: {
+      label: "Cancelled",
+      className: "bg-red-100 text-red-800 border-red-200",
+    },
+  };
+
+  const config = configs[status] ?? {
+    label: status,
+    className: "bg-gray-100 text-gray-800 border-gray-200",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${config.className}`}
+    >
+      {config.label}
+    </span>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Admin Dashboard — Order Row
+───────────────────────────────────────────────────────────────────────── */
+function OrderRow({ order, index }: { order: Preorder; index: number }) {
+  const updateMutation = useUpdateOrderStatus();
+  const [localStatus, setLocalStatus] = useState(order.status);
+
+  const handleStatusChange = (newStatus: string) => {
+    setLocalStatus(newStatus);
+    updateMutation.mutate(
+      { orderId: order.id as Principal, newStatus },
+      {
+        onError: () => {
+          setLocalStatus(order.status);
+          toast.error("Failed to update status. Please try again.");
+        },
+        onSuccess: () => {
+          toast.success("Order status updated!");
+        },
+      },
+    );
+  };
+
+  const date = new Date(Number(order.createdAt) / 1_000_000);
+  const formattedDate = date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  return (
+    <TableRow
+      data-ocid={`admin.order.row.${index}`}
+      className="hover:bg-pink-50/50 transition-colors"
+    >
+      <TableCell className="font-medium text-bloom-dark text-center w-10">
+        {index}
+      </TableCell>
+      <TableCell>
+        <div>
+          <p className="font-semibold text-bloom-dark text-sm">{order.name}</p>
+          <p className="text-xs text-bloom-gray">{order.email}</p>
+        </div>
+      </TableCell>
+      <TableCell className="text-sm text-bloom-dark">{order.phone}</TableCell>
+      <TableCell>
+        <div className="text-xs text-bloom-gray space-y-0.5">
+          <p>{order.address.street}</p>
+          <p>
+            {order.address.city}, {order.address.state}
+          </p>
+          <p className="font-medium text-bloom-dark">{order.address.pincode}</p>
+        </div>
+      </TableCell>
+      <TableCell className="text-center font-semibold text-bloom-dark">
+        {Number(order.quantity)}
+      </TableCell>
+      <TableCell>
+        <StatusBadge status={localStatus} />
+      </TableCell>
+      <TableCell>
+        <Select
+          value={localStatus}
+          onValueChange={handleStatusChange}
+          disabled={updateMutation.isPending}
+        >
+          <SelectTrigger
+            data-ocid={`admin.order.select.${index}`}
+            className="h-8 text-xs rounded-lg border-gray-200 w-32"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="shipped">Shipped</SelectItem>
+            <SelectItem value="delivered">Delivered</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell className="text-xs text-bloom-gray whitespace-nowrap">
+        {formattedDate}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Admin Dashboard — Main
+───────────────────────────────────────────────────────────────────────── */
+function AdminDashboard({ onExit }: { onExit: () => void }) {
+  const [password, setPassword] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === "bloom2026admin") {
+      setIsAuthenticated(true);
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+      setPassword("");
+    }
+  };
+
+  // Password gate
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-bloom-blush via-white to-bloom-pale flex items-center justify-center px-4 font-poppins">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-sm"
+        >
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 rounded-full bg-bloom-hot-pink flex items-center justify-center mx-auto mb-4 shadow-bloom">
+              <Sparkles className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-bloom-dark">Admin Login</h1>
+            <p className="text-sm text-bloom-gray mt-1">Bloom Styling Glue™</p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-bloom-lg p-8">
+            <form
+              onSubmit={handleLogin}
+              className="space-y-5"
+              data-ocid="admin.modal"
+            >
+              <div>
+                <Label
+                  htmlFor="admin-password"
+                  className="text-sm font-medium text-bloom-dark mb-1.5 block"
+                >
+                  Admin Password
+                </Label>
+                <Input
+                  id="admin-password"
+                  data-ocid="admin.input"
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError(false);
+                  }}
+                  placeholder="Enter admin password"
+                  className={`rounded-xl h-11 ${passwordError ? "border-red-400 focus:ring-red-400" : "border-bloom-pink/40 focus:ring-bloom-hot-pink focus:border-bloom-hot-pink"}`}
+                  autoFocus
+                />
+                {passwordError && (
+                  <p
+                    data-ocid="admin.error_state"
+                    className="text-xs text-red-500 mt-1.5 flex items-center gap-1"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Incorrect password. Please try again.
+                  </p>
+                )}
+              </div>
+
+              <Button
+                data-ocid="admin.submit_button"
+                type="submit"
+                className="w-full bg-bloom-hot-pink hover:bg-bloom-pink text-white font-semibold rounded-xl h-11 shadow-bloom"
+              >
+                <ShieldCheck className="mr-2 w-4 h-4" />
+                Access Dashboard
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                data-ocid="admin.cancel_button"
+                onClick={onExit}
+                className="text-xs text-bloom-gray hover:text-bloom-hot-pink transition-colors"
+              >
+                ← Back to store
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return <AdminDashboardContent onExit={onExit} />;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Admin Dashboard — Content (after auth)
+───────────────────────────────────────────────────────────────────────── */
+function AdminDashboardContent({ onExit }: { onExit: () => void }) {
+  const { data: orders = [], isLoading } = useGetAllPreorders();
+
+  const totalOrders = orders.length;
+  const pending = orders.filter((o) => o.status === "pending").length;
+  const confirmed = orders.filter((o) => o.status === "confirmed").length;
+  const shipped = orders.filter((o) => o.status === "shipped").length;
+  const delivered = orders.filter((o) => o.status === "delivered").length;
+
+  const summaryCards = [
+    {
+      label: "Total Orders",
+      value: totalOrders,
+      icon: Package,
+      color: "text-bloom-hot-pink",
+      bg: "bg-bloom-pale",
+    },
+    {
+      label: "Pending",
+      value: pending,
+      icon: Loader2,
+      color: "text-yellow-600",
+      bg: "bg-yellow-50",
+    },
+    {
+      label: "Confirmed",
+      value: confirmed,
+      icon: CheckCircle,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      label: "Shipped",
+      value: shipped,
+      icon: Truck,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+    {
+      label: "Delivered",
+      value: delivered,
+      icon: Users,
+      color: "text-green-600",
+      bg: "bg-green-50",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-poppins">
+      {/* Top bar */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-bloom-hot-pink flex items-center justify-center shadow-bloom">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <span className="text-lg font-bold text-bloom-dark">Bloom</span>
+              <span className="text-xs text-bloom-gray ml-2 hidden sm:inline">
+                Admin Dashboard
+              </span>
+            </div>
+          </div>
+          <Button
+            data-ocid="admin.close_button"
+            onClick={onExit}
+            variant="outline"
+            size="sm"
+            className="border-gray-200 text-bloom-gray hover:text-bloom-dark hover:border-bloom-pink gap-1.5 rounded-full"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Page title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-bloom-dark">Orders</h1>
+          <p className="text-sm text-bloom-gray mt-1">
+            Manage all preorders and update their status
+          </p>
+        </div>
+
+        {/* Summary cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          {summaryCards.map((card) => (
+            <Card
+              key={card.label}
+              className="border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-9 h-9 rounded-xl ${card.bg} flex items-center justify-center flex-shrink-0`}
+                  >
+                    <card.icon className={`w-4 h-4 ${card.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-bloom-dark">
+                      {card.value}
+                    </p>
+                    <p className="text-xs text-bloom-gray">{card.label}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Orders table */}
+        <Card className="border-gray-100 shadow-sm" data-ocid="admin.table">
+          <CardHeader className="pb-4 border-b border-gray-50">
+            <CardTitle className="text-base font-semibold text-bloom-dark">
+              All Orders
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div
+                data-ocid="admin.loading_state"
+                className="flex items-center justify-center py-20"
+              >
+                <div className="text-center">
+                  <Loader2 className="w-8 h-8 text-bloom-hot-pink animate-spin mx-auto mb-3" />
+                  <p className="text-sm text-bloom-gray">Loading orders…</p>
+                </div>
+              </div>
+            ) : orders.length === 0 ? (
+              <div
+                data-ocid="admin.empty_state"
+                className="flex flex-col items-center justify-center py-20 text-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-bloom-pale flex items-center justify-center mb-4">
+                  <Package className="w-7 h-7 text-bloom-hot-pink" />
+                </div>
+                <h3 className="font-semibold text-bloom-dark mb-1">
+                  No orders yet
+                </h3>
+                <p className="text-sm text-bloom-gray max-w-xs">
+                  Orders will appear here once customers start preordering from
+                  your store.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/70 hover:bg-gray-50/70">
+                      <TableHead className="w-10 text-center text-xs font-semibold text-bloom-gray">
+                        #
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold text-bloom-gray">
+                        Customer
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold text-bloom-gray">
+                        Phone
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold text-bloom-gray">
+                        Address
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold text-bloom-gray text-center">
+                        Qty
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold text-bloom-gray">
+                        Status
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold text-bloom-gray">
+                        Update
+                      </TableHead>
+                      <TableHead className="text-xs font-semibold text-bloom-gray">
+                        Date
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order, i) => (
+                      <OrderRow
+                        key={order.id.toString()}
+                        order={order}
+                        index={i + 1}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    App Root
 ───────────────────────────────────────────────────────────────────────── */
+type View = "home" | "admin";
+
 export default function App() {
+  const [view, setView] = useState<View>("home");
+
   return (
     <div className="min-h-screen font-poppins">
       <Toaster position="top-center" richColors />
-      <Navbar />
-      <main>
-        <HeroSection />
-        <ProductShowcase />
-        <SocialProofSection />
-        <PreorderSection />
-        <FAQSection />
-      </main>
-      <Footer />
+      <AnimatePresence mode="wait">
+        {view === "admin" ? (
+          <motion.div
+            key="admin"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <AdminDashboard onExit={() => setView("home")} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Navbar onAdminClick={() => setView("admin")} />
+            <main>
+              <HeroSection />
+              <ProductShowcase />
+              <SocialProofSection />
+              <PreorderSection />
+              <FAQSection />
+            </main>
+            <Footer onAdminClick={() => setView("admin")} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

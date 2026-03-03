@@ -1,3 +1,4 @@
+import type { Principal } from "@icp-sdk/core/principal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
 
@@ -23,6 +24,7 @@ export function useGetAllPreorders() {
       return actor.getAllPreorders();
     },
     enabled: !!actor && !isFetching,
+    refetchInterval: 15000,
   });
 }
 
@@ -34,18 +36,59 @@ export function useSubmitPreorder() {
     mutationFn: async ({
       name,
       email,
+      phone,
+      street,
+      city,
+      state,
+      pincode,
       quantity,
     }: {
       name: string;
       email: string;
+      phone: string;
+      street: string;
+      city: string;
+      state: string;
+      pincode: string;
       quantity: number;
     }) => {
       if (!actor) throw new Error("Not connected");
-      await actor.submitPreorder(name, email, BigInt(quantity));
+      await actor.submitPreorder(
+        name,
+        email,
+        phone,
+        street,
+        city,
+        state,
+        pincode,
+        BigInt(quantity),
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["totalPreorders"] });
       queryClient.invalidateQueries({ queryKey: ["allPreorders"] });
+    },
+  });
+}
+
+export function useUpdateOrderStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      newStatus,
+    }: {
+      orderId: Principal;
+      newStatus: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      await actor.updateOrderStatus(orderId, newStatus);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allPreorders"] });
+      queryClient.invalidateQueries({ queryKey: ["totalPreorders"] });
     },
   });
 }

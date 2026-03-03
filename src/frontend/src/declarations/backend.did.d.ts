@@ -10,15 +10,32 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface Preorder {
-  'name' : string,
-  'email' : string,
-  'quantity' : bigint,
+export interface Address {
+  'street' : string,
+  'city' : string,
+  'state' : string,
+  'pincode' : string,
 }
+export interface Preorder {
+  'id' : Principal,
+  'status' : string,
+  'paymentMethod' : string,
+  'name' : string,
+  'createdAt' : Time,
+  'email' : string,
+  'address' : Address,
+  'quantity' : bigint,
+  'phone' : string,
+}
+export type Time = bigint;
 export interface _SERVICE {
   'getAllPreorders' : ActorMethod<[], Array<Preorder>>,
   'getTotalPreorders' : ActorMethod<[], bigint>,
-  'submitPreorder' : ActorMethod<[string, string, bigint], undefined>,
+  'submitPreorder' : ActorMethod<
+    [string, string, string, string, string, string, string, bigint],
+    undefined
+  >,
+  'updateOrderStatus' : ActorMethod<[Principal, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
