@@ -1,6 +1,6 @@
 import Map "mo:core/Map";
-import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
+import Time "mo:core/Time";
 
 module {
   type Address = {
@@ -10,23 +10,7 @@ module {
     pincode : Text;
   };
 
-  type OldPreorder = {
-    id : Principal;
-    name : Text;
-    email : Text;
-    phone : Text;
-    address : Address;
-    quantity : Nat;
-    paymentMethod : Text;
-    status : Text;
-    createdAt : Int;
-  };
-
-  type OldActor = {
-    preorders : Map.Map<Principal, OldPreorder>;
-  };
-
-  type NewPreorder = {
+  type Preorder = {
     id : Nat;
     name : Text;
     email : Text;
@@ -35,16 +19,23 @@ module {
     quantity : Nat;
     paymentMethod : Text;
     status : Text;
-    createdAt : Int;
+    createdAt : Time.Time;
+  };
+
+  type OldActor = {
+    var orderIdCounter : Nat;
+    preorders : Map.Map<Nat, Preorder>;
   };
 
   type NewActor = {
-    preorders : Map.Map<Nat, NewPreorder>;
     orderIdCounter : Nat;
+    preorders : Map.Map<Nat, Preorder>;
   };
 
   public func run(old : OldActor) : NewActor {
-    let newPreorders = Map.empty<Nat, NewPreorder>();
-    { preorders = newPreorders; orderIdCounter = 0 };
+    {
+      orderIdCounter = old.orderIdCounter;
+      preorders = old.preorders;
+    };
   };
 };

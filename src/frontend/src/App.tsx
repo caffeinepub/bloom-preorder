@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useActor } from "@/hooks/useActor";
 import {
   useGetAllPreorders,
   useGetTotalPreorders,
@@ -683,6 +684,7 @@ function PreorderSection() {
   const [quantity, setQuantity] = useState<string>("1");
 
   const mutation = useSubmitPreorder();
+  const { isFetching: actorLoading } = useActor();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -739,7 +741,7 @@ function PreorderSection() {
     );
   };
 
-  const isDisabled = mutation.isPending;
+  const isDisabled = mutation.isPending || actorLoading;
 
   return (
     <section
@@ -855,11 +857,25 @@ function PreorderSection() {
                   animate={{ opacity: 1 }}
                   className="text-center py-4 mb-4"
                 >
-                  <div className="bg-red-50 rounded-xl p-4 flex items-center gap-3 text-left">
-                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                    <p className="text-sm text-red-700">
-                      Something went wrong. Please try again.
-                    </p>
+                  <div className="bg-red-50 rounded-xl p-4 flex items-start gap-3 text-left">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm text-red-700 font-medium">
+                        Something went wrong
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        Please check your details and try again.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => mutation.reset()}
+                      className="border-red-300 text-red-600 hover:bg-red-50 rounded-lg text-xs flex-shrink-0"
+                    >
+                      Try Again
+                    </Button>
                   </div>
                 </motion.div>
               ) : null}
@@ -1068,6 +1084,11 @@ function PreorderSection() {
                     <>
                       <Loader2 className="mr-2 w-4 h-4 animate-spin" />
                       Placing Order…
+                    </>
+                  ) : actorLoading ? (
+                    <>
+                      <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                      Connecting…
                     </>
                   ) : (
                     <>

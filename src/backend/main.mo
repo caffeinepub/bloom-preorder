@@ -26,7 +26,7 @@ actor {
     createdAt : Time.Time;
   };
 
-  var orderIdCounter = 0;
+  stable var orderIdCounter = 0;
   let preorders = Map.empty<Nat, Preorder>();
 
   public shared ({ caller }) func submitPreorder(
