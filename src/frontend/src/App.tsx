@@ -431,7 +431,7 @@ function ProductShowcase() {
             />
             <div className="relative rounded-[3rem] overflow-hidden shadow-bloom-lg bg-bloom-blush">
               <img
-                src="/assets/uploads/IMG_20260303_232439_674-1.jpg"
+                src="/assets/uploads/file_0000000073dc720888ec783a4e2cc579-1.png"
                 alt="Bloom Styling Glue stick product"
                 className="w-full h-full object-cover"
                 loading="lazy"
