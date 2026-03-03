@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Poppins Font - Self-hosted */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/assets/fonts/poppins-300.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/poppins-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/assets/fonts/poppins-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/assets/fonts/poppins-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/assets/fonts/poppins-700.woff2') format('woff2');
+}
+
+@layer base {
+  :root {
+    --radius: 1rem;
+
+    /* Pink Bloom palette — OKLCH raw L C H */
+    /* background: near-white pinkish #FDF2F8 */
+    --background: 0.972 0.012 345;
+    /* foreground: dark gray #374151 */
+    --foreground: 0.342 0.018 264;
+
+    /* card: white */
+    --card: 1 0 0;
+    --card-foreground: 0.342 0.018 264;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.342 0.018 264;
+
+    /* primary: hot pink #EC4899 */
+    --primary: 0.617 0.225 349.5;
+    --primary-foreground: 1 0 0;
+
+    /* secondary: pale pink #FCE7F3 */
+    --secondary: 0.952 0.028 345;
+    --secondary-foreground: 0.342 0.018 264;
+
+    /* muted: very light pink */
+    --muted: 0.962 0.018 345;
+    --muted-foreground: 0.56 0.025 345;
+
+    /* accent: medium pink #F472B6 */
+    --accent: 0.687 0.195 349;
+    --accent-foreground: 1 0 0;
+
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    /* border: soft pink */
+    --border: 0.9 0.04 345;
+    --input: 0.9 0.04 345;
+    --ring: 0.617 0.225 349.5;
+
+    /* bloom custom tokens */
+    --bloom-pink: 0.687 0.195 349;
+    --bloom-hot-pink: 0.617 0.225 349.5;
+    --bloom-pale-pink: 0.952 0.028 345;
+    --bloom-blush: 0.972 0.012 345;
+    --bloom-dark: 0.342 0.018 264;
+    --bloom-gray: 0.56 0.025 264;
+
+    --chart-1: 0.687 0.195 349;
+    --chart-2: 0.617 0.225 349.5;
+    --chart-3: 0.752 0.155 349;
+    --chart-4: 0.82 0.09 349;
+    --chart-5: 0.577 0.245 27.325;
+
+    --sidebar: 0.985 0.01 345;
+    --sidebar-foreground: 0.342 0.018 264;
+    --sidebar-primary: 0.617 0.225 349.5;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.952 0.028 345;
+    --sidebar-accent-foreground: 0.342 0.018 264;
+    --sidebar-border: 0.9 0.04 345;
+    --sidebar-ring: 0.617 0.225 349.5;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-bloom-pink {
+    color: oklch(var(--bloom-pink));
+  }
+  .text-bloom-hot-pink {
+    color: oklch(var(--bloom-hot-pink));
+  }
+  .bg-bloom-pale {
+    background-color: oklch(var(--bloom-pale-pink));
+  }
+  .bg-bloom-blush {
+    background-color: oklch(var(--bloom-blush));
+  }
+  .bg-bloom-hot-pink {
+    background-color: oklch(var(--bloom-hot-pink));
+  }
+  .bg-bloom-pink {
+    background-color: oklch(var(--bloom-pink));
+  }
+  .border-bloom-pink {
+    border-color: oklch(var(--bloom-pink));
+  }
+
+  /* Petal noise texture overlay */
+  .petal-bg {
+    background-image:
+      radial-gradient(ellipse at 20% 50%, oklch(0.687 0.195 349 / 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, oklch(0.617 0.225 349.5 / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, oklch(0.752 0.155 349 / 0.07) 0%, transparent 50%);
+  }
+
+  /* Shimmer animation for loading */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, oklch(0.9 0.04 345) 25%, oklch(0.95 0.02 345) 50%, oklch(0.9 0.04 345) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Counter animation */
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-count-up {
+    animation: count-up 0.6s ease-out forwards;
+  }
+}
