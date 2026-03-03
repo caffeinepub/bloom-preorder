@@ -1,4 +1,3 @@
-import type { Principal } from "@icp-sdk/core/principal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
 
@@ -80,7 +79,7 @@ export function useUpdateOrderStatus() {
       orderId,
       newStatus,
     }: {
-      orderId: Principal;
+      orderId: bigint;
       newStatus: string;
     }) => {
       if (!actor) throw new Error("Not connected");

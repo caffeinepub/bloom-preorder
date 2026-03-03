@@ -1,6 +1,6 @@
 import Map "mo:core/Map";
 import Principal "mo:core/Principal";
-import Time "mo:core/Time";
+import Nat "mo:core/Nat";
 
 module {
   type Address = {
@@ -11,16 +11,6 @@ module {
   };
 
   type OldPreorder = {
-    name : Text;
-    email : Text;
-    quantity : Nat;
-  };
-
-  type OldActor = {
-    preorders : Map.Map<Principal, OldPreorder>;
-  };
-
-  type NewPreorder = {
     id : Principal;
     name : Text;
     email : Text;
@@ -29,34 +19,32 @@ module {
     quantity : Nat;
     paymentMethod : Text;
     status : Text;
-    createdAt : Time.Time;
+    createdAt : Int;
+  };
+
+  type OldActor = {
+    preorders : Map.Map<Principal, OldPreorder>;
+  };
+
+  type NewPreorder = {
+    id : Nat;
+    name : Text;
+    email : Text;
+    phone : Text;
+    address : Address;
+    quantity : Nat;
+    paymentMethod : Text;
+    status : Text;
+    createdAt : Int;
   };
 
   type NewActor = {
-    preorders : Map.Map<Principal, NewPreorder>;
+    preorders : Map.Map<Nat, NewPreorder>;
+    orderIdCounter : Nat;
   };
 
   public func run(old : OldActor) : NewActor {
-    let newPreorders = old.preorders.map<Principal, OldPreorder, NewPreorder>(
-      func(id, oldPreorder) {
-        {
-          id;
-          name = oldPreorder.name;
-          email = oldPreorder.email;
-          phone = "";
-          address = {
-            street = "";
-            city = "";
-            state = "";
-            pincode = "";
-          };
-          quantity = oldPreorder.quantity;
-          paymentMethod = "COD";
-          status = "pending";
-          createdAt = 0;
-        };
-      }
-    );
-    { preorders = newPreorders };
+    let newPreorders = Map.empty<Nat, NewPreorder>();
+    { preorders = newPreorders; orderIdCounter = 0 };
   };
 };

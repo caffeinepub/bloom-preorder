@@ -91,7 +91,7 @@ export class ExternalBlob {
 }
 export type Time = bigint;
 export interface Preorder {
-    id: Principal;
+    id: bigint;
     status: string;
     paymentMethod: string;
     name: string;
@@ -110,8 +110,8 @@ export interface Address {
 export interface backendInterface {
     getAllPreorders(): Promise<Array<Preorder>>;
     getTotalPreorders(): Promise<bigint>;
-    submitPreorder(name: string, email: string, phone: string, street: string, city: string, state: string, pincode: string, quantity: bigint): Promise<void>;
-    updateOrderStatus(orderId: Principal, newStatus: string): Promise<void>;
+    submitPreorder(name: string, email: string, phone: string, street: string, city: string, state: string, pincode: string, quantity: bigint): Promise<bigint>;
+    updateOrderStatus(orderId: bigint, newStatus: string): Promise<void>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
@@ -143,7 +143,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async submitPreorder(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: bigint): Promise<void> {
+    async submitPreorder(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: bigint): Promise<bigint> {
         if (this.processError) {
             try {
                 const result = await this.actor.submitPreorder(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
@@ -157,7 +157,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateOrderStatus(arg0: Principal, arg1: string): Promise<void> {
+    async updateOrderStatus(arg0: bigint, arg1: string): Promise<void> {
         if (this.processError) {
             try {
                 const result = await this.actor.updateOrderStatus(arg0, arg1);

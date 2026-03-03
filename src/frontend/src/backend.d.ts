@@ -9,7 +9,7 @@ export interface None {
 export type Option<T> = Some<T> | None;
 export type Time = bigint;
 export interface Preorder {
-    id: Principal;
+    id: bigint;
     status: string;
     paymentMethod: string;
     name: string;
@@ -28,6 +28,6 @@ export interface Address {
 export interface backendInterface {
     getAllPreorders(): Promise<Array<Preorder>>;
     getTotalPreorders(): Promise<bigint>;
-    submitPreorder(name: string, email: string, phone: string, street: string, city: string, state: string, pincode: string, quantity: bigint): Promise<void>;
-    updateOrderStatus(orderId: Principal, newStatus: string): Promise<void>;
+    submitPreorder(name: string, email: string, phone: string, street: string, city: string, state: string, pincode: string, quantity: bigint): Promise<bigint>;
+    updateOrderStatus(orderId: bigint, newStatus: string): Promise<void>;
 }

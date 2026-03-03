@@ -16,7 +16,7 @@ export const Address = IDL.Record({
   'pincode' : IDL.Text,
 });
 export const Preorder = IDL.Record({
-  'id' : IDL.Principal,
+  'id' : IDL.Nat,
   'status' : IDL.Text,
   'paymentMethod' : IDL.Text,
   'name' : IDL.Text,
@@ -41,10 +41,10 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Nat,
       ],
-      [],
+      [IDL.Nat],
       [],
     ),
-  'updateOrderStatus' : IDL.Func([IDL.Principal, IDL.Text], [], []),
+  'updateOrderStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -58,7 +58,7 @@ export const idlFactory = ({ IDL }) => {
     'pincode' : IDL.Text,
   });
   const Preorder = IDL.Record({
-    'id' : IDL.Principal,
+    'id' : IDL.Nat,
     'status' : IDL.Text,
     'paymentMethod' : IDL.Text,
     'name' : IDL.Text,
@@ -83,10 +83,10 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Nat,
         ],
-        [],
+        [IDL.Nat],
         [],
       ),
-    'updateOrderStatus' : IDL.Func([IDL.Principal, IDL.Text], [], []),
+    'updateOrderStatus' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   });
 };
 

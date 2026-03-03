@@ -1,8 +1,8 @@
 import Map "mo:core/Map";
 import Array "mo:core/Array";
 import Runtime "mo:core/Runtime";
-import Principal "mo:core/Principal";
 import Time "mo:core/Time";
+import Nat "mo:core/Nat";
 import Migration "migration";
 
 (with migration = Migration.run)
@@ -15,7 +15,7 @@ actor {
   };
 
   type Preorder = {
-    id : Principal;
+    id : Nat;
     name : Text;
     email : Text;
     phone : Text;
@@ -26,7 +26,8 @@ actor {
     createdAt : Time.Time;
   };
 
-  let preorders = Map.empty<Principal, Preorder>();
+  var orderIdCounter = 0;
+  let preorders = Map.empty<Nat, Preorder>();
 
   public shared ({ caller }) func submitPreorder(
     name : Text,
@@ -37,18 +38,19 @@ actor {
     state : Text,
     pincode : Text,
     quantity : Nat,
-  ) : async () {
-    if (preorders.containsKey(caller)) {
-      Runtime.trap("Preorder already submitted with this caller.");
-    };
+  ) : async Nat {
+    let orderId = orderIdCounter;
+    orderIdCounter += 1;
+
     let address : Address = {
       street;
       city;
       state;
       pincode;
     };
+
     let preorder : Preorder = {
-      id = caller;
+      id = orderId;
       name;
       email;
       phone;
@@ -58,15 +60,17 @@ actor {
       status = "pending";
       createdAt = Time.now();
     };
-    preorders.add(caller, preorder);
+
+    preorders.add(orderId, preorder);
+    orderId;
   };
 
-  public shared ({ caller }) func updateOrderStatus(orderId : Principal, newStatus : Text) : async () {
+  public shared ({ caller }) func updateOrderStatus(orderId : Nat, newStatus : Text) : async () {
     switch (preorders.get(orderId)) {
       case (null) { Runtime.trap("Order not found") };
       case (?existingOrder) {
         let updatedOrder : Preorder = {
-          existingOrder with status = newStatus;
+          existingOrder with status = newStatus
         };
         preorders.add(orderId, updatedOrder);
       };

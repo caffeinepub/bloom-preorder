@@ -32,7 +32,6 @@ import {
   useSubmitPreorder,
   useUpdateOrderStatus,
 } from "@/hooks/useQueries";
-import type { Principal } from "@icp-sdk/core/principal";
 import {
   AlertCircle,
   CheckCircle,
@@ -1321,7 +1320,7 @@ function OrderRow({ order, index }: { order: Preorder; index: number }) {
   const handleStatusChange = (newStatus: string) => {
     setLocalStatus(newStatus);
     updateMutation.mutate(
-      { orderId: order.id as Principal, newStatus },
+      { orderId: order.id as bigint, newStatus },
       {
         onError: () => {
           setLocalStatus(order.status);

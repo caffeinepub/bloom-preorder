@@ -17,7 +17,7 @@ export interface Address {
   'pincode' : string,
 }
 export interface Preorder {
-  'id' : Principal,
+  'id' : bigint,
   'status' : string,
   'paymentMethod' : string,
   'name' : string,
@@ -33,9 +33,9 @@ export interface _SERVICE {
   'getTotalPreorders' : ActorMethod<[], bigint>,
   'submitPreorder' : ActorMethod<
     [string, string, string, string, string, string, string, bigint],
-    undefined
+    bigint
   >,
-  'updateOrderStatus' : ActorMethod<[Principal, string], undefined>,
+  'updateOrderStatus' : ActorMethod<[bigint, string], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
