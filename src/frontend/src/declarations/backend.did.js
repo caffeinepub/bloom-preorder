@@ -26,10 +26,17 @@ export const Preorder = IDL.Record({
   'quantity' : IDL.Nat,
   'phone' : IDL.Text,
 });
+export const VisitStats = IDL.Record({
+  'today' : IDL.Nat,
+  'last7Days' : IDL.Nat,
+  'yesterday' : IDL.Nat,
+});
 
 export const idlService = IDL.Service({
   'getAllPreorders' : IDL.Func([], [IDL.Vec(Preorder)], ['query']),
   'getTotalPreorders' : IDL.Func([], [IDL.Nat], ['query']),
+  'getVisitStats' : IDL.Func([], [VisitStats], ['query']),
+  'recordVisit' : IDL.Func([], [], []),
   'submitPreorder' : IDL.Func(
       [
         IDL.Text,
@@ -68,10 +75,17 @@ export const idlFactory = ({ IDL }) => {
     'quantity' : IDL.Nat,
     'phone' : IDL.Text,
   });
+  const VisitStats = IDL.Record({
+    'today' : IDL.Nat,
+    'last7Days' : IDL.Nat,
+    'yesterday' : IDL.Nat,
+  });
   
   return IDL.Service({
     'getAllPreorders' : IDL.Func([], [IDL.Vec(Preorder)], ['query']),
     'getTotalPreorders' : IDL.Func([], [IDL.Nat], ['query']),
+    'getVisitStats' : IDL.Func([], [VisitStats], ['query']),
+    'recordVisit' : IDL.Func([], [], []),
     'submitPreorder' : IDL.Func(
         [
           IDL.Text,

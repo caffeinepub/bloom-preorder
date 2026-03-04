@@ -28,9 +28,16 @@ export interface Preorder {
   'phone' : string,
 }
 export type Time = bigint;
+export interface VisitStats {
+  'today' : bigint,
+  'last7Days' : bigint,
+  'yesterday' : bigint,
+}
 export interface _SERVICE {
   'getAllPreorders' : ActorMethod<[], Array<Preorder>>,
   'getTotalPreorders' : ActorMethod<[], bigint>,
+  'getVisitStats' : ActorMethod<[], VisitStats>,
+  'recordVisit' : ActorMethod<[], undefined>,
   'submitPreorder' : ActorMethod<
     [string, string, string, string, string, string, string, bigint],
     bigint

@@ -30,6 +30,8 @@ import { useActor } from "@/hooks/useActor";
 import {
   useGetAllPreorders,
   useGetTotalPreorders,
+  useGetVisitStats,
+  useRecordVisit,
   useSubmitPreorder,
   useUpdateOrderStatus,
 } from "@/hooks/useQueries";
@@ -37,6 +39,7 @@ import {
   AlertCircle,
   CheckCircle,
   ChevronDown,
+  Eye,
   FlaskConical,
   Heart,
   Leaf,
@@ -47,6 +50,7 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  TrendingUp,
   Truck,
   Users,
   X,
@@ -1776,6 +1780,7 @@ function AdminDashboard({ onExit }: { onExit: () => void }) {
 ───────────────────────────────────────────────────────────────────────── */
 function AdminDashboardContent({ onExit }: { onExit: () => void }) {
   const { data: orders = [], isLoading } = useGetAllPreorders();
+  const { data: visitStats, isLoading: visitStatsLoading } = useGetVisitStats();
 
   const totalOrders = orders.length;
   const pending = orders.filter((o) => o.status === "pending").length;
@@ -1885,6 +1890,90 @@ function AdminDashboardContent({ onExit }: { onExit: () => void }) {
           ))}
         </div>
 
+        {/* Visitor Stats card */}
+        <Card
+          className="border-gray-100 shadow-sm mb-8"
+          data-ocid="admin.visitor_stats.card"
+        >
+          <CardHeader className="pb-4 border-b border-gray-50">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-bloom-pale flex items-center justify-center flex-shrink-0">
+                <Eye className="w-4 h-4 text-bloom-hot-pink" />
+              </div>
+              <CardTitle className="text-base font-semibold text-bloom-dark">
+                Visitor Stats
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            {visitStatsLoading ? (
+              <div
+                data-ocid="admin.visitor_stats.loading_state"
+                className="flex items-center gap-2 py-3 text-bloom-gray text-sm"
+              >
+                <Loader2 className="w-4 h-4 animate-spin text-bloom-hot-pink" />
+                Loading visitor stats…
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Today */}
+                <div
+                  data-ocid="admin.visitor_stats.today.card"
+                  className="rounded-2xl bg-gradient-to-br from-bloom-pale to-white border border-bloom-pink/20 p-4 flex items-center gap-3"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-bloom-hot-pink flex items-center justify-center flex-shrink-0 shadow-bloom">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-bloom-dark leading-none">
+                      {Number(visitStats?.today ?? 0).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-bloom-gray mt-1 font-medium">
+                      Today
+                    </p>
+                  </div>
+                </div>
+
+                {/* Yesterday */}
+                <div
+                  data-ocid="admin.visitor_stats.yesterday.card"
+                  className="rounded-2xl bg-gradient-to-br from-pink-50 to-white border border-pink-100 p-4 flex items-center gap-3"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-bloom-pink flex items-center justify-center flex-shrink-0">
+                    <Eye className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-bloom-dark leading-none">
+                      {Number(visitStats?.yesterday ?? 0).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-bloom-gray mt-1 font-medium">
+                      Yesterday
+                    </p>
+                  </div>
+                </div>
+
+                {/* Last 7 Days */}
+                <div
+                  data-ocid="admin.visitor_stats.last7days.card"
+                  className="rounded-2xl bg-gradient-to-br from-fuchsia-50 to-white border border-fuchsia-100 p-4 flex items-center gap-3"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-fuchsia-400 flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-bloom-dark leading-none">
+                      {Number(visitStats?.last7Days ?? 0).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-bloom-gray mt-1 font-medium">
+                      Last 7 Days
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Orders table */}
         <Card className="border-gray-100 shadow-sm" data-ocid="admin.table">
           <CardHeader className="pb-4 border-b border-gray-50">
@@ -1979,6 +2068,14 @@ export default function App() {
   const [splashDone, setSplashDone] = useState(() => {
     return sessionStorage.getItem("bloom_splash_seen") === "1";
   });
+  const { actor } = useActor();
+  const recordVisitMutation = useRecordVisit();
+  const recordVisitMutate = recordVisitMutation.mutate;
+
+  useEffect(() => {
+    if (!actor) return;
+    recordVisitMutate();
+  }, [actor, recordVisitMutate]);
 
   const handleSplashFinish = () => {
     sessionStorage.setItem("bloom_splash_seen", "1");

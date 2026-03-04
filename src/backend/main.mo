@@ -4,8 +4,6 @@ import Runtime "mo:core/Runtime";
 import Time "mo:core/Time";
 import Nat "mo:core/Nat";
 
-
-
 actor {
   type Address = {
     street : Text;
@@ -26,8 +24,18 @@ actor {
     createdAt : Time.Time;
   };
 
+  type VisitStats = {
+    today : Nat;
+    yesterday : Nat;
+    last7Days : Nat;
+  };
+
   stable var orderIdCounter = 0;
   let preorders = Map.empty<Nat, Preorder>();
+
+  stable var visitTimestamps : [Time.Time] = [];
+
+  // Preorder Management
 
   public shared ({ caller }) func submitPreorder(
     name : Text,
@@ -83,5 +91,42 @@ actor {
 
   public query ({ caller }) func getAllPreorders() : async [Preorder] {
     preorders.values().toArray();
+  };
+
+  // Visitor Tracking
+
+  public shared ({ caller }) func recordVisit() : async () {
+    let now = Time.now();
+    visitTimestamps := visitTimestamps.concat([now]);
+  };
+
+  public query ({ caller }) func getVisitStats() : async VisitStats {
+    let nanoSecondsInDay : Time.Time = 86_400_000_000_000;
+    let now = Time.now();
+    let todayStart = now - (now % nanoSecondsInDay);
+    let yesterdayStart = todayStart - nanoSecondsInDay;
+    let weekStart = todayStart - (7 * nanoSecondsInDay);
+
+    var today = 0;
+    var yesterday = 0;
+    var last7Days = 0;
+
+    for (timestamp in visitTimestamps.values()) {
+      if (timestamp >= todayStart) {
+        today += 1;
+        last7Days += 1;
+      } else if (timestamp >= yesterdayStart) {
+        yesterday += 1;
+        last7Days += 1;
+      } else if (timestamp >= weekStart) {
+        last7Days += 1;
+      };
+    };
+
+    {
+      today;
+      yesterday;
+      last7Days;
+    };
   };
 };

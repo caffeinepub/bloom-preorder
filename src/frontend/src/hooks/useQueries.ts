@@ -1,3 +1,4 @@
+import type { VisitStats } from "@/backend.d";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
 
@@ -90,6 +91,31 @@ export function useUpdateOrderStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allPreorders"] });
       queryClient.invalidateQueries({ queryKey: ["totalPreorders"] });
+    },
+  });
+}
+
+export function useGetVisitStats() {
+  const { actor, isFetching } = useActor();
+  return useQuery<VisitStats>({
+    queryKey: ["visitStats"],
+    queryFn: async () => {
+      if (!actor)
+        return { today: BigInt(0), yesterday: BigInt(0), last7Days: BigInt(0) };
+      return actor.getVisitStats();
+    },
+    enabled: !!actor && !isFetching,
+    refetchInterval: 60000,
+  });
+}
+
+export function useRecordVisit() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Not connected");
+      await actor.recordVisit();
     },
   });
 }
