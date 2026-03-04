@@ -684,7 +684,7 @@ function PreorderSection() {
   const [quantity, setQuantity] = useState<string>("1");
 
   const mutation = useSubmitPreorder();
-  const { isFetching: actorLoading } = useActor();
+  const { actor, isFetching: actorLoading } = useActor();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -712,6 +712,12 @@ function PreorderSection() {
       toast.error("Please enter a valid 6-digit pincode");
       return;
     }
+    if (!actor) {
+      toast.error(
+        "Still connecting to the server. Please wait a moment and try again.",
+      );
+      return;
+    }
     mutation.mutate(
       {
         name: name.trim(),
@@ -735,13 +741,15 @@ function PreorderSection() {
           setQuantity("1");
         },
         onError: () => {
-          toast.error("Something went wrong. Please try again.");
+          toast.error(
+            "Order could not be placed. Please check your connection and try again.",
+          );
         },
       },
     );
   };
 
-  const isDisabled = mutation.isPending || actorLoading;
+  const isDisabled = mutation.isPending || actorLoading || !actor;
 
   return (
     <section

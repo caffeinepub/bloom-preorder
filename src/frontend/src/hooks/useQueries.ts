@@ -63,6 +63,8 @@ export function useSubmitPreorder() {
         BigInt(quantity),
       );
     },
+    retry: 2,
+    retryDelay: 1000,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["totalPreorders"] });
       queryClient.invalidateQueries({ queryKey: ["allPreorders"] });
