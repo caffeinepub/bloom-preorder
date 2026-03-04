@@ -88,8 +88,123 @@ function useAnimatedCounter(target: number, duration = 1800) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   Splash Screen
+─────────────────────────────────────────────────────────────────────────── */
+function SplashScreen({ onFinish }: { onFinish: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onFinish();
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [onFinish]);
+
+  const containerVariants = {
+    exit: {
+      scale: 1.08,
+      opacity: 0,
+      transition: {
+        duration: 0.55,
+        ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 28 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 280,
+        damping: 22,
+        delay: i * 0.12,
+      },
+    }),
+  };
+
+  return (
+    <motion.div
+      key="splash"
+      variants={containerVariants}
+      exit="exit"
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{
+        background:
+          "linear-gradient(135deg, oklch(0.617 0.225 349.5) 0%, oklch(0.687 0.195 349) 60%, oklch(0.752 0.155 349) 100%)",
+      }}
+    >
+      {/* Decorative circles */}
+      <div
+        className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-20 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, white 0%, transparent 70%)",
+          transform: "translate(-40%, -40%)",
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-15 pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, white 0%, transparent 70%)",
+          transform: "translate(35%, 35%)",
+        }}
+      />
+
+      <div className="flex flex-col items-center gap-4 relative z-10">
+        {/* Icon */}
+        <motion.div
+          custom={0}
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-2xl border border-white/30"
+        >
+          <Sparkles className="w-10 h-10 text-white" />
+        </motion.div>
+
+        {/* Brand name */}
+        <motion.h1
+          custom={1}
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-6xl font-bold text-white tracking-tight"
+          style={{ fontFamily: "Poppins, sans-serif" }}
+        >
+          Bloom
+        </motion.h1>
+
+        {/* Tagline */}
+        <motion.p
+          custom={2}
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-white/80 text-lg font-medium tracking-widest uppercase"
+          style={{ fontFamily: "Poppins, sans-serif", letterSpacing: "0.18em" }}
+        >
+          Styling Glue™
+        </motion.p>
+
+        {/* Subtitle */}
+        <motion.p
+          custom={3}
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-white/60 text-sm mt-1"
+          style={{ fontFamily: "Poppins, sans-serif" }}
+        >
+          Style, Secured.
+        </motion.p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    Navbar
-───────────────────────────────────────────────────────────────────────── */
+─────────────────────────────────────────────────────────────────────────── */
 function Navbar({ onAdminClick }: { onAdminClick?: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -227,7 +342,7 @@ function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex items-center overflow-hidden bg-bloom-blush petal-bg pt-16"
+      className="relative min-h-screen flex items-center overflow-hidden bg-bloom-blush petal-bg pt-16 scroll-mt-20"
     >
       {/* Decorative blobs */}
       <div
@@ -247,6 +362,98 @@ function HeroSection() {
         }}
       />
 
+      {/* Floating petal particles */}
+      {[
+        {
+          id: "petal-1",
+          size: 14,
+          top: "12%",
+          left: "8%",
+          delay: "0s",
+          opacity: 0.12,
+          color: "oklch(0.617 0.225 349.5)",
+        },
+        {
+          id: "petal-2",
+          size: 10,
+          top: "25%",
+          left: "15%",
+          delay: "0.8s",
+          opacity: 0.1,
+          color: "oklch(0.687 0.195 349)",
+        },
+        {
+          id: "petal-3",
+          size: 20,
+          top: "60%",
+          left: "5%",
+          delay: "1.4s",
+          opacity: 0.15,
+          color: "oklch(0.752 0.155 349)",
+        },
+        {
+          id: "petal-4",
+          size: 8,
+          top: "75%",
+          left: "22%",
+          delay: "2.1s",
+          opacity: 0.1,
+          color: "oklch(0.617 0.225 349.5)",
+        },
+        {
+          id: "petal-5",
+          size: 16,
+          top: "15%",
+          right: "10%",
+          delay: "0.4s",
+          opacity: 0.12,
+          color: "oklch(0.687 0.195 349)",
+        },
+        {
+          id: "petal-6",
+          size: 12,
+          top: "40%",
+          right: "5%",
+          delay: "1.0s",
+          opacity: 0.13,
+          color: "oklch(0.617 0.225 349.5)",
+        },
+        {
+          id: "petal-7",
+          size: 18,
+          top: "70%",
+          right: "18%",
+          delay: "1.7s",
+          opacity: 0.1,
+          color: "oklch(0.752 0.155 349)",
+        },
+        {
+          id: "petal-8",
+          size: 9,
+          top: "85%",
+          right: "8%",
+          delay: "2.5s",
+          opacity: 0.11,
+          color: "oklch(0.687 0.195 349)",
+        },
+      ].map((p) => (
+        <div
+          key={p.id}
+          className="absolute rounded-full pointer-events-none animate-float"
+          style={{
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            top: p.top,
+            left: "left" in p ? p.left : undefined,
+            right: "right" in p ? p.right : undefined,
+            opacity: p.opacity,
+            backgroundColor: p.color,
+            animationDelay: p.delay,
+            willChange: "transform",
+          }}
+        />
+      ))}
+
       <div className="max-w-6xl mx-auto px-6 w-full py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text content */}
@@ -254,7 +461,12 @@ function HeroSection() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
+              transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 24,
+                delay: 0.1,
+              }}
             >
               <span className="inline-flex items-center gap-2 bg-bloom-pale text-bloom-hot-pink text-xs font-semibold px-4 py-2 rounded-full border border-bloom-pink/30 mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -265,7 +477,12 @@ function HeroSection() {
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+              transition={{
+                type: "spring",
+                stiffness: 240,
+                damping: 22,
+                delay: 0.2,
+              }}
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-bloom-dark leading-tight tracking-tight mb-6"
             >
               Keep Your Dress in Place,{" "}
@@ -286,7 +503,12 @@ function HeroSection() {
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
+              transition={{
+                type: "spring",
+                stiffness: 220,
+                damping: 22,
+                delay: 0.3,
+              }}
               className="text-lg text-bloom-gray leading-relaxed mb-8 max-w-lg"
             >
               Bloom Styling Glue™ is the adhesive body glue designed to prevent
@@ -297,7 +519,12 @@ function HeroSection() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.4 }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 22,
+                delay: 0.42,
+              }}
               className="flex flex-col sm:flex-row gap-4 items-start sm:items-center"
             >
               <Button
@@ -318,7 +545,7 @@ function HeroSection() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.6 }}
+              transition={{ duration: 0.8, delay: 0.65 }}
               className="flex items-center gap-6 mt-10"
             >
               <div className="flex -space-x-2">
@@ -357,7 +584,12 @@ function HeroSection() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, x: 30 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.2 }}
+            transition={{
+              type: "spring",
+              stiffness: 120,
+              damping: 20,
+              delay: 0.25,
+            }}
             className="order-1 lg:order-2 flex justify-center relative"
           >
             <div className="relative w-full max-w-lg">
@@ -369,7 +601,10 @@ function HeroSection() {
                     "linear-gradient(135deg, oklch(0.687 0.195 349), oklch(0.617 0.225 349.5))",
                 }}
               />
-              <div className="relative rounded-[3rem] overflow-hidden shadow-bloom-lg animate-float">
+              <div
+                className="relative rounded-[3rem] overflow-hidden shadow-bloom-lg animate-float"
+                style={{ willChange: "transform" }}
+              >
                 <img
                   src="/assets/uploads/file_000000001fc4720890e72374fd0b0857-1.png"
                   alt="Bloom Styling Glue stick held against arm"
@@ -402,6 +637,7 @@ function HeroSection() {
       <motion.div
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+        style={{ willChange: "transform" }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
       >
         <ChevronDown className="w-6 h-6 text-bloom-pink opacity-60" />
@@ -438,7 +674,10 @@ const features = [
 
 function ProductShowcase() {
   return (
-    <section id="features" className="py-24 bg-white relative overflow-hidden">
+    <section
+      id="features"
+      className="py-24 bg-white relative overflow-hidden scroll-mt-20"
+    >
       <div
         className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-5 pointer-events-none"
         style={{
@@ -480,6 +719,7 @@ function ProductShowcase() {
                 duration: 3,
                 delay: 0.5,
               }}
+              style={{ willChange: "transform" }}
               className="absolute -top-4 -right-4 bg-bloom-hot-pink text-white rounded-2xl px-4 py-2 shadow-bloom"
             >
               <p className="text-xs font-bold">Spring 2026</p>
@@ -493,6 +733,7 @@ function ProductShowcase() {
                 duration: 3.5,
                 delay: 1,
               }}
+              style={{ willChange: "transform" }}
               className="absolute -bottom-4 -left-4 bg-white rounded-2xl px-4 py-3 shadow-bloom flex items-center gap-2"
             >
               <div className="w-8 h-8 rounded-full bg-bloom-pale flex items-center justify-center">
@@ -596,7 +837,7 @@ function SocialProofSection() {
       id="about"
       data-ocid="social_proof.section"
       ref={ref}
-      className="py-24 relative overflow-hidden"
+      className="py-24 relative overflow-hidden scroll-mt-20"
       style={{
         background:
           "linear-gradient(135deg, oklch(0.617 0.225 349.5) 0%, oklch(0.687 0.195 349) 100%)",
@@ -754,7 +995,7 @@ function PreorderSection() {
   return (
     <section
       id="preorder"
-      className="py-24 bg-bloom-blush petal-bg relative overflow-hidden"
+      className="py-24 bg-bloom-blush petal-bg relative overflow-hidden scroll-mt-20"
     >
       <div className="max-w-xl mx-auto px-6">
         <motion.div
@@ -1150,7 +1391,7 @@ const faqs = [
 
 function FAQSection() {
   return (
-    <section id="faq" className="py-24 bg-white">
+    <section id="faq" className="py-24 bg-white scroll-mt-20">
       <div className="max-w-2xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1730,15 +1971,32 @@ function AdminDashboardContent({ onExit }: { onExit: () => void }) {
 
 /* ─────────────────────────────────────────────────────────────────────────
    App Root
-───────────────────────────────────────────────────────────────────────── */
+─────────────────────────────────────────────────────────────────────────── */
 type View = "home" | "admin";
 
 export default function App() {
   const [view, setView] = useState<View>("home");
+  const [splashDone, setSplashDone] = useState(() => {
+    return sessionStorage.getItem("bloom_splash_seen") === "1";
+  });
+
+  const handleSplashFinish = () => {
+    sessionStorage.setItem("bloom_splash_seen", "1");
+    setSplashDone(true);
+  };
 
   return (
     <div className="min-h-screen font-poppins">
       <Toaster position="top-center" richColors />
+
+      {/* Splash screen — only on first visit per session */}
+      <AnimatePresence>
+        {!splashDone && (
+          <SplashScreen key="splash" onFinish={handleSplashFinish} />
+        )}
+      </AnimatePresence>
+
+      {/* Main app content */}
       <AnimatePresence mode="wait">
         {view === "admin" ? (
           <motion.div
@@ -1753,10 +2011,9 @@ export default function App() {
         ) : (
           <motion.div
             key="home"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: splashDone ? 1 : 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.4, delay: splashDone ? 0 : 1.6 }}
           >
             <Navbar onAdminClick={() => setView("admin")} />
             <main>
